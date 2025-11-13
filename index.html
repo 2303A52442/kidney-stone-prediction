@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Based Kidney Stone Classification</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        .drop-zone {
+            border: 3px dashed #cbd5e0;
+            transition: 0.3s;
+        }
+        .drop-zone.dragover {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="text-center py-10">
+        <h1 class="text-4xl font-bold text-indigo-900 flex items-center justify-center gap-3">
+            🔬 AI-Based Kidney Stone Classification
+        </h1>
+        <p class="text-gray-700 mt-2 text-lg">Deep Learning Model for Urological Imaging</p>
+        <p class="text-gray-500 mt-1 text-sm">Automated Detection of Kidney Stones from Medical Images</p>
+    </div>
+
+    <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-10">
+
+        <h2 class="text-2xl font-semibold mb-6">Upload Kidney Image</h2>
+
+        <div id="dropZone" class="drop-zone rounded-lg p-12 text-center cursor-pointer">
+            <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                </path>
+            </svg>
+
+            <p class="text-xl text-gray-700">Drop kidney scan here or click to browse</p>
+            <p class="text-sm text-gray-500 mt-1">Supported formats: JPG, PNG</p>
+
+            <input type="file" id="fileInput" accept="image/*" class="hidden">
+        </div>
+
+        <p id="fileNameBox" class="text-sm text-gray-600 mt-3 hidden">
+            Selected: <span id="fileName" class="font-semibold"></span>
+        </p>
+
+        <button id="analyzeBtn"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg mt-6 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled>
+            Analyze Image
+        </button>
+
+    </div>
+
+    <!-- Error Box -->
+    <div id="errorBox" class="max-w-4xl mx-auto mt-6 bg-red-100 border border-red-300 text-red-700 p-5 rounded-lg hidden">
+        <h3 class="font-bold">Error</h3>
+        <p id="errorMessage">Something went wrong.</p>
+    </div>
+
+    <!-- Output -->
+    <div id="outputBox" class="max-w-4xl mx-auto mt-8 bg-white shadow rounded-lg p-8 hidden">
+        <h2 class="text-2xl font-semibold mb-4">Prediction Result</h2>
+        <p class="text-lg font-bold">Result: <span id="resultText"></span></p>
+        <p class="text-gray-700 mt-2">Confidence: <span id="scoreText"></span></p>
+        <img id="previewImg" class="mt-6 rounded-lg shadow max-w-xs" />
+    </div>
+
+    <script>
+        const dropZone = document.getElementById("dropZone");
+        const fileInput = document.getElementById("fileInput");
+        const analyzeBtn = document.getElementById("analyzeBtn");
+        const fileNameBox = document.getElementById("fileNameBox");
+        const fileName = document.getElementById("fileName");
+
+        const errorBox = document.getElementById("errorBox");
+        const errorMessage = document.getElementById("errorMessage");
+
+        const outputBox = document.getElementById("outputBox");
+        const resultText = document.getElementById("resultText");
+        const scoreText = document.getElementById("scoreText");
+        const previewImg = document.getElementById("previewImg");
+
+        let selectedFile = null;
+
+        dropZone.addEventListener("click", () => fileInput.click());
+
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("dragover");
+        });
+
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.classList.remove("dragover");
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("dragover");
+            handleFile(e.dataTransfer.files[0]);
+        });
+
+        fileInput.addEventListener("change", () => {
+            if (fileInput.files.length > 0) {
+                handleFile(fileInput.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            fileName.textContent = file.name;
+            fileNameBox.classList.remove("hidden");
+            analyzeBtn.disabled = false;
+        }
+
+        analyzeBtn.addEventListener("click", async () => {
+            if (!selectedFile) return;
+
+            errorBox.classList.add("hidden");
+            outputBox.classList.add("hidden");
+
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+
+            try {
+                const res = await fetch("/", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!res.ok) {
+                    throw new Error("Server error");
+                }
+
+                const data = await res.json();
+
+                resultText.textContent = data.result;
+                scoreText.textContent = data.score + "%";
+                previewImg.src = URL.createObjectURL(selectedFile);
+
+                outputBox.classList.remove("hidden");
+
+            } catch (err) {
+                errorMessage.textContent = err.message;
+                errorBox.classList.remove("hidden");
+            }
+        });
+    </script>
+
+</body>
+</html>
+
+
