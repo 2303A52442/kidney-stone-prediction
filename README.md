@@ -43,4 +43,8 @@ index.html
 requirements.txt
 README.md
 
+Output:
+<img width="1608" height="901" alt="{F55C34BF-1D93-4AF8-AB5F-B3FC21BD315A}" src="https://github.com/user-attachments/assets/36eed4c1-f135-4244-9c85-adaaf79a9515" />
+
+
 
